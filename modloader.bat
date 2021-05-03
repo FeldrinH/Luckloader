@@ -1,0 +1,1 @@
+start "" "Luck Be A Landlord.exe" --script lucklike_modloader/bootstrap.gd
