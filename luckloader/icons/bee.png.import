@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/bee.png-b2cec32c17769db867825f1c52bd82b9.stex"
+path="res://.import/bee.png-347c80f49b3a357257824b58846d0d3d.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://luckloader/icons/bee.png"
-dest_files=[ "res://.import/bee.png-b2cec32c17769db867825f1c52bd82b9.stex" ]
+source_file="res://icons/bee.png"
+dest_files=[ "res://.import/bee.png-347c80f49b3a357257824b58846d0d3d.stex" ]
 
 [params]
 

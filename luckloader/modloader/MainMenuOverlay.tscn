@@ -1,0 +1,52 @@
+[gd_scene load_steps=2 format=2]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends CanvasLayer
+
+var warning_count := 0
+
+func set_mod_count(mod_count: int):
+	$root/mods.text = str(mod_count) + \" mods loaded\"
+
+func increment_warning_count(increment: int = 1):
+	warning_count += increment
+	$root/warnings.text = str(warning_count) + \" warnings\"
+"
+
+[node name="LuckloaderMainMenuOverlay" type="CanvasLayer"]
+layer = 16
+script = SubResource( 1 )
+
+[node name="Root" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Warnings" type="Label" parent="Root"]
+visible = false
+anchor_top = 1.0
+anchor_bottom = 1.0
+margin_left = 5.42728
+margin_top = -43.0126
+margin_right = 108.427
+margin_bottom = -25.0126
+text = "X warnings"
+valign = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Mods" type="Label" parent="Root"]
+anchor_top = 1.0
+anchor_bottom = 1.0
+margin_left = 5.19131
+margin_top = -23.3816
+margin_right = 201.191
+margin_bottom = -5.38159
+text = "X mods loaded"
+valign = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}

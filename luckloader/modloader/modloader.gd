@@ -1,8 +1,9 @@
-extends SceneTree
+extends Reference
 
-const Util := preload("./util.gd")
+var tree: SceneTree = null
+const Util = preload("res://modloader/util.gd")
 
-const modloader_version := "v0.1.0"
+const modloader_version := "v0.2.0"
 const expected_version := "Content Patch #5 -- Hotfix #3"
 var game_version: String = "<game version not determined yet>"
 
@@ -18,10 +19,15 @@ const builtin_translations := {}
 
 var _dir := Directory.new()
 
-func _init():
-	print("MODLOADER: Initializing Lucklike Modloader " + modloader_version)
-	print("MODLOADER: Executable directory: " + exe_dir)
-	print("MODLOADER: Godot engine version: " + Engine.get_version_info().string)
+func _init(tree: SceneTree):
+	self.tree = tree
+	print(tree)
+	print(self.tree)
+
+func execute_before_start():
+	print("MODLOADER: Initializing Luckloader " + modloader_version)
+	
+	_assert(ProjectSettings.load_resource_pack(exe_dir.plus_file("luckloader/modloader.zip"), true), "Failed to load modloader internals")
 	
 	Util.ensure_dir_exists("user://_loadtemp")
 	Util.ensure_dir_exists("user://_patched")
@@ -48,19 +54,18 @@ func _init():
 	print(items.size())
 	print(symbols.size())
 	print(emails.size())
-	symbols["rubrik"] = [1]
 	
 	#loads_mods()
 	
 	patch_postload()
-	
-	print("MODLOADER: Initialization complete")
-	
-	print("MODLOADER: Starting game")
-	change_scene(ProjectSettings.get_setting("application/run/main_scene"))
-	yield(self, "node_added")
+
+func execute_after_start():
+	print("MODLOADER: Adding modloader UI overlay")
+	tree.current_scene.add_child(load("res://modloader/MainMenuOverlay.tscn").instance())
 	
 	postload_mods()
+	
+	print("MODLOADER: Initialization complete")
 
 func patch_preload():
 	print("MODLOADER: Patching game code")
@@ -94,7 +99,7 @@ func patch_postload():
 	var packer := PCKPacker.new()
 	packer.pck_start("user://_patched/postload.pck")
 	
-	save_and_pack_json(packer, symbols, "res://JSON/Items - JSON.json")
+	save_and_pack_json(packer, symbols, "res://JSON/Symbols - JSON.json")
 	save_and_pack_json(packer, items, "res://JSON/Items - JSON.json")
 	save_and_pack_json(packer, emails, "res://JSON/Emails - JSON.json")
 	

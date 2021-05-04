@@ -1,14 +1,13 @@
-extends SceneTree
+extends Reference
 
-const Util := preload("./util.gd")
+const Util = preload("res://modloader/util.gd")
 
-var exe_dir := OS.get_executable_path().get_base_dir()
-var datadump_dir := exe_dir.plus_file("datadump")
+var datadump_dir := OS.get_executable_path().get_base_dir().plus_file("datadump")
 
 var regex := RegEx.new()
 var dir := Directory.new()
 
-func _init():
+func execute():
 	Util.ensure_dir_exists(datadump_dir)
 	
 	dump_folder("res://")
