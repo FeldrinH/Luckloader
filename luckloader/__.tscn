@@ -7,14 +7,15 @@ script/source = "extends Node
 # Declare member variables here. Examples:
 # var a = 2
 # var b = \"text\"
-
+var ifad: Dictionary
 
 # Called when the node enters the scene tree for the first time.
 func _enter_tree():
 	print(\"Loading translations\")
 	#var tr_old: Translation = load(\"res://ttest.en.translation\")
 	#TranslationServer.remove_translation(tr_old)
-	
+	print(ifad)
+	print(ifad)
 	create_tr()
 	
 	

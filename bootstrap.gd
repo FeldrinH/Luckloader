@@ -1,55 +1,68 @@
 extends SceneTree
 
+const Util := preload("./util.gd")
+
 const modloader_version := "v0.1.0"
 const expected_version := "Content Patch #5 -- Hotfix #3"
 var game_version: String = "<game version not determined yet>"
 
 var exe_dir := OS.get_executable_path().get_base_dir()
 
+var symbols: Dictionary
+var items: Dictionary
+var emails: Dictionary
+
+const mods := []
 const translations := {}
 const builtin_translations := {}
 
-var regex := RegEx.new()
-var dir_global := Directory.new()
+var _dir := Directory.new()
 
 func _init():
 	print("MODLOADER: Initializing Lucklike Modloader " + modloader_version)
 	print("MODLOADER: Executable directory: " + exe_dir)
 	print("MODLOADER: Godot engine version: " + Engine.get_version_info().string)
 	
-	ensure_dir_exists("user://_loadtemp")
-	ensure_dir_exists("user://_patched")
+	Util.ensure_dir_exists("user://_loadtemp")
+	Util.ensure_dir_exists("user://_patched")
 	
 	# Extract game version using regex. Dirty hack to avoid having to run game code before patching.
 	var main_script = extract_script(copy_and_load("res://Main.tscn"), "Main").source_code
 	
+	var regex := RegEx.new()
 	regex.compile("\\sversion_str\\s*=\\s*\"(.*?)\"")
 	var matched_version := regex.search(main_script)
 	if matched_version == null:
-		__halt("Version check failed: Unable to determine game version. This modloader is for game version " + expected_version)
+		_halt("Version check failed: Unable to determine game version. This modloader is for game version " + expected_version)
 	
 	game_version = matched_version.strings[1]
 	print("MODLOADER: Game version: " + game_version)
 	if expected_version != game_version:
-		__halt("Version mismatch: This modloader is for version '" + expected_version + "' but the game is running version '" + game_version + "'")
+		_halt("Version mismatch: This modloader is for version '" + expected_version + "' but the game is running version '" + game_version + "'")
 	
-	#attach_hooks()
+	#patch_preload()
 	
 	setup_translations()
-	add_translation("flower", "Blurry thing")
-	add_translation("flower_desc", "Going live, move out")
-	add_translation("cat_desc", "<icon_coin> and meow")
-	print(tr("flower"))
 	
-	load_mods()
+	setup_json()
+	print(items.size())
+	print(symbols.size())
+	print(emails.size())
+	symbols["rubrik"] = [1]
+	
+	#loads_mods()
+	
+	patch_postload()
 	
 	print("MODLOADER: Initialization complete")
 	
 	print("MODLOADER: Starting game")
 	change_scene(ProjectSettings.get_setting("application/run/main_scene"))
-	#yield(self, "node_added")	
+	yield(self, "node_added")
+	
+	postload_mods()
 
-func attach_hooks():
+func patch_preload():
 	print("MODLOADER: Patching game code")
 	
 	var packer := PCKPacker.new()
@@ -61,25 +74,46 @@ func attach_hooks():
 	var datetime := str(OS.get_datetime().hour) + ":" + str(OS.get_datetime().minute) + ":" + str(OS.get_datetime().second)
 	var new_code := "$0\tprint(\"hello from loaderland reels time of patch " + datetime + "\")\n"
 	
+	var regex := RegEx.new()
 	regex.compile("func spin\\(.*?\\n")
 	target_script.source_code = regex.sub(target_script.source_code, new_code)
 	#print(target_script.source_code)
 	
-	save_and_pack(packer, main_scene, "res://Main.tscn")
+	save_and_pack_resource(packer, main_scene, "res://Main.tscn")
 	
 	packer.flush(true)
 	
 	print("MODLOADER: Loading patched code")
-	ProjectSettings.load_resource_pack("user://_patched/preload.pck", true)
+	_assert(ProjectSettings.load_resource_pack("user://_patched/preload.pck", true), "Failed to load patched code")
 	
 	print("MODLOADER: Patching game code complete")
+
+func patch_postload():
+	print("MODLOADER: Patching game data")
+	
+	var packer := PCKPacker.new()
+	packer.pck_start("user://_patched/postload.pck")
+	
+	save_and_pack_json(packer, symbols, "res://JSON/Items - JSON.json")
+	save_and_pack_json(packer, items, "res://JSON/Items - JSON.json")
+	save_and_pack_json(packer, emails, "res://JSON/Emails - JSON.json")
+	
+	packer.flush(true)
+	
+	print("MODLOADER: Loading patched data")
+	_assert(ProjectSettings.load_resource_pack("user://_patched/postload.pck", true), "Failed to load patched data")
+	
+	print("MODLOADER: Patching game data complete")
 
 func load_mods():
 	print("MODLOADER: Loading mods")
 
-	__assert(ProjectSettings.load_resource_pack("test.zip", true), "Failed to load test.zip")
+	_assert(ProjectSettings.load_resource_pack("test.zip", true), "Failed to load test.zip")
 
 	print("MODLOADER: Loading mods complete")
+
+func postload_mods():
+	pass
 
 func setup_translations():
 	for locale in TranslationServer.get_loaded_locales():
@@ -91,6 +125,23 @@ func setup_translations():
 	for tr_path in ProjectSettings["locale/translations"]:
 		var tr := load(tr_path)
 		builtin_translations[tr.locale] = tr
+
+func setup_json():
+	symbols = Util.read_json("res://JSON/Symbols - JSON.json")
+	items = Util.read_json("res://JSON/Items - JSON.json")
+	emails = Util.read_json("res://JSON/Emails - JSON.json")
+
+func add_symbol(name: String, data: Dictionary):
+	if !(data.has("value") and data.has("values") and data.has("rarity") and data.has("groups")):
+		_halt("Attempt to add invalid symbol " + str(data))
+	
+	symbols[name] = data
+
+func add_item(name: String, data: Dictionary):
+	if !(data.has("values") and data.has("rarity") and data.has("groups")):
+		_halt("Attempt to add invalid item " + str(data))
+	
+	items[name] = data
 
 func add_translation(key: String, value: String, locale: String = "en"):
 	if !translations.has(locale):
@@ -108,7 +159,7 @@ func remove_builtin_translation(key: String, locale: String = "en"):
 		return
 	compressed_translation_remove_message(key, tr)
 
-func extract_script(scene: PackedScene, node_name: String) -> GDScript:
+static func extract_script(scene: PackedScene, node_name: String) -> GDScript:
 	var state: SceneState = scene.get_state()
 	
 	var node_idx := -1
@@ -117,7 +168,7 @@ func extract_script(scene: PackedScene, node_name: String) -> GDScript:
 		if state.get_node_name(i) == node_name:
 			node_idx = i
 			break
-	__assert(node_idx != -1, "Node not found while extracting script from packed scene")
+	_assert(node_idx != -1, "Node not found while extracting script from packed scene")
 	
 	var extracted_script: GDScript = null
 	var property_count := state.get_node_property_count(node_idx)
@@ -125,30 +176,36 @@ func extract_script(scene: PackedScene, node_name: String) -> GDScript:
 		if state.get_node_property_name(node_idx, i) == "script":
 			extracted_script = state.get_node_property_value(node_idx, i)
 			break
-	__assert(extracted_script is GDScript, "Extracted script is not GDScript")
-	__assert(extracted_script.has_source_code(), "Extracted script does not have source code")
+	_assert(extracted_script is GDScript, "Extracted script is not GDScript")
+	_assert(extracted_script.has_source_code(), "Extracted script does not have source code")
 	
 	return extracted_script
 
-func ensure_dir_exists(dir_path: String):
-	if !dir_global.dir_exists(dir_path):
-		__assert(dir_global.make_dir(dir_path) == OK, "Failed to create directory " + dir_path)
-
-func save_and_pack(packer: PCKPacker, res: Resource, target_path: String):
+func save_and_pack_resource(packer: PCKPacker, res: Resource, target_path: String):
 	var save_path := "user://_patched/" + target_path.trim_prefix("res://").replace("/", "_").replace("\\", "_")
-	__assert(ResourceSaver.save(save_path, res) == OK, "Failed to save resource to " + save_path)
-	__assert(packer.add_file(target_path, save_path) == OK, "Failed to pack resource to " + res.resource_path)
+	_assert(ResourceSaver.save(save_path, res) == OK, "Failed to save resource to " + save_path)
+	_assert(packer.add_file(target_path, save_path) == OK, "Failed to pack resource to " + target_path)
+
+func save_and_pack_json(packer: PCKPacker, json_data, target_path: String):
+	var save_path := "user://_patched/" + target_path.trim_prefix("res://").replace("/", "_").replace("\\", "_")
+	
+	var file := File.new()
+	_assert(file.open(save_path, File.WRITE) == OK, "Failed to open file " + save_path + " for writing")
+	file.store_string(JSON.print(json_data, "  "))
+	file.close()
+	
+	_assert(packer.add_file(target_path, save_path) == OK, "Failed to pack resource to " + target_path)
 
 func copy_and_load(res_path: String) -> Resource:
 	var temp_path := "user://_loadtemp/" + res_path.trim_prefix("res://")
-	__assert(dir_global.copy(res_path, temp_path) == OK, "Failed to copy " + res_path + " to " + temp_path)
+	_assert(_dir.copy(res_path, temp_path) == OK, "Failed to copy " + res_path + " to " + temp_path)
 	return load(temp_path)
 
 const uint32_limit := 0x100000000
 
 # Function for removing a message from a PHashTranslation based on key.
 # Based on get_message implementation in Godot engine source code.
-func compressed_translation_remove_message(message_key: String, tr: PHashTranslation):
+static func compressed_translation_remove_message(message_key: String, tr: PHashTranslation):
 	var hash_raw: int = string_hash(0, message_key)
 	var hash_idx: int = hash_raw % tr.hash_table.size()
 	#print(h, " -> ", tr.hash_table[h])
@@ -171,7 +228,7 @@ func compressed_translation_remove_message(message_key: String, tr: PHashTransla
 
 # Hashing function used by PHashTranslation.
 # Implementation copied from Godot engine source code and adapted for GDScript.
-func string_hash(d: int, string: String) -> int:
+static func string_hash(d: int, string: String) -> int:
 	if d == 0:
 		d = 0x1000193
 	
@@ -181,11 +238,11 @@ func string_hash(d: int, string: String) -> int:
 	
 	return d;
 
-func __assert(condition: bool, message: String):
+static func _assert(condition: bool, message: String):
 	if !condition:
-		__halt(message)
+		_halt(message)
 
-func __halt(message: String):
+static func _halt(message: String):
 	# Output error message
 	push_error("MODLOADER RUNTIME ERROR: " + message)
 	# Cause an intentional null pointer exception, to halt script execution
