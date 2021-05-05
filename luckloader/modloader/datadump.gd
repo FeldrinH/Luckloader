@@ -15,6 +15,7 @@ func execute():
 	dump_images("res://icons")
 	dump_images("res://buttons")
 	dump_translations()
+	ProjectSettings.save_custom(datadump_dir.plus_file("project.godot"))
 
 func dump_file(file_path: String):
 	_assert(dir.copy(file_path, datadump_dir.plus_file(file_path.trim_prefix("res://"))) == OK, "Failed to dump file " + file_path)

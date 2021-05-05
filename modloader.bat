@@ -1,1 +1,1 @@
-start "" "Luck Be A Landlord.exe" --script luckloader/bootstrap.gd
+start "" "Luck be a Landlord.exe" --script luckloader/bootstrap.gd

@@ -4,7 +4,7 @@ var modloader = null
 
 var exe_dir := OS.get_executable_path().get_base_dir()
 
-func _init():
+func _initialize():
 	print("BOOTSTRAP: Executable directory: " + exe_dir)
 	print("BOOTSTRAP: Godot engine version: " + Engine.get_version_info().string)
 	

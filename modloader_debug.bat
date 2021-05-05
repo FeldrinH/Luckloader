@@ -1,0 +1,1 @@
+"Godot_v3.2.3-stable_win64.exe" --main-pack "Luck be a Landlord.exe" --script luckloader/bootstrap.gd
