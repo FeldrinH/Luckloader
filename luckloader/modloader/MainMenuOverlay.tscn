@@ -6,11 +6,11 @@ script/source = "extends CanvasLayer
 var warning_count := 0
 
 func set_mod_count(mod_count: int):
-	$root/mods.text = str(mod_count) + \" mods loaded\"
+	$Root/Mods.text = str(mod_count) + \" mods loaded\"
 
 func increment_warning_count(increment: int = 1):
 	warning_count += increment
-	$root/warnings.text = str(warning_count) + \" warnings\"
+	$Root/Warnings.text = str(warning_count) + \" warnings\"
 "
 
 [node name="LuckloaderMainMenuOverlay" type="CanvasLayer"]

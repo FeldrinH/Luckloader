@@ -30,7 +30,7 @@ func _init():
 		
 		datadump.execute()
 		
-		yield(create_timer(5), "timeout")
+		yield(create_timer(4), "timeout")
 		quit()
 	else:
 		_halt("Unknown bootstrap mode: '" + mode + "'")

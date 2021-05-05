@@ -1,1 +1,1 @@
-start "" "Luck Be A Landlord.exe" --script lucklike_modloader/datadump.gd
+start "" "Luck Be A Landlord.exe" --script luckloader/bootstrap.gd -datadump

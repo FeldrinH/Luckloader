@@ -1,10 +1,12 @@
 extends Reference
 
-var tree: SceneTree = null
+signal add_conditional_effects(icon, adj_icons)
+
+var tree: SceneTree
 const Util = preload("res://modloader/util.gd")
 
 const modloader_version := "v0.2.0"
-const expected_version := "Content Patch #5 -- Hotfix #3"
+const expected_version := "Content Patch #6 -- Hotfix #2"
 var game_version: String = "<game version not determined yet>"
 
 var exe_dir := OS.get_executable_path().get_base_dir()
@@ -19,10 +21,10 @@ const builtin_translations := {}
 
 var _dir := Directory.new()
 
+var _hook_default_cancelled: bool = false
+
 func _init(tree: SceneTree):
 	self.tree = tree
-	print(tree)
-	print(self.tree)
 
 func execute_before_start():
 	print("MODLOADER: Initializing Luckloader " + modloader_version)
@@ -33,7 +35,7 @@ func execute_before_start():
 	Util.ensure_dir_exists("user://_patched")
 	
 	# Extract game version using regex. Dirty hack to avoid having to run game code before patching.
-	var main_script = extract_script(copy_and_load("res://Main.tscn"), "Main").source_code
+	var main_script = extract_script(load("res://Main.tscn"), "Main").source_code
 	
 	var regex := RegEx.new()
 	regex.compile("\\sversion_str\\s*=\\s*\"(.*?)\"")
@@ -46,14 +48,11 @@ func execute_before_start():
 	if expected_version != game_version:
 		_halt("Version mismatch: This modloader is for version '" + expected_version + "' but the game is running version '" + game_version + "'")
 	
-	#patch_preload()
+	patch_preload()
 	
 	setup_translations()
 	
 	setup_json()
-	print(items.size())
-	print(symbols.size())
-	print(emails.size())
 	
 	#loads_mods()
 	
@@ -61,9 +60,12 @@ func execute_before_start():
 
 func execute_after_start():
 	print("MODLOADER: Adding modloader UI overlay")
-	tree.current_scene.add_child(load("res://modloader/MainMenuOverlay.tscn").instance())
 	
-	postload_mods()
+	var overlay = load("res://modloader/MainMenuOverlay.tscn").instance()
+	tree.current_scene.add_child(overlay)
+	overlay.set_mod_count(mods.size())
+	
+	#postload_mods()
 	
 	print("MODLOADER: Initialization complete")
 
@@ -71,25 +73,23 @@ func patch_preload():
 	print("MODLOADER: Patching game code")
 	
 	var packer := PCKPacker.new()
-	packer.pck_start("user://_patched/preload.pck")
+	_assert(packer.pck_start("user://_patched/preload.pck") == OK, "Opening preload.pck for writing failed")
 	
-	var main_scene : = copy_and_load("res://Main.tscn")
-	var target_script := extract_script(main_scene, "Reels")
+	var scene: PackedScene
+	var script: GDScript
 	
-	var datetime := str(OS.get_datetime().hour) + ":" + str(OS.get_datetime().minute) + ":" + str(OS.get_datetime().second)
-	var new_code := "$0\tprint(\"hello from loaderland reels time of patch " + datetime + "\")\n"
+	scene = load("res://Slot Icon.tscn")
+	replace_script_and_pack_original(packer, scene, "Slot Icon", "res://modloader/patches/SlotIcon.gd")
+	save_and_pack_resource(packer, scene, "res://Slot Icon.tscn")
 	
-	var regex := RegEx.new()
-	regex.compile("func spin\\(.*?\\n")
-	target_script.source_code = regex.sub(target_script.source_code, new_code)
-	#print(target_script.source_code)
-	
-	save_and_pack_resource(packer, main_scene, "res://Main.tscn")
-	
-	packer.flush(true)
+	_assert(packer.flush(true) == OK, "Failed to write to preload.pck")
 	
 	print("MODLOADER: Loading patched code")
+	
 	_assert(ProjectSettings.load_resource_pack("user://_patched/preload.pck", true), "Failed to load patched code")
+	force_reload("res://Slot Icon.tscn")
+	
+	print(extract_script(load("res://Slot Icon.tscn"), "Slot Icon").resource_path)
 	
 	print("MODLOADER: Patching game code complete")
 
@@ -97,13 +97,13 @@ func patch_postload():
 	print("MODLOADER: Patching game data")
 	
 	var packer := PCKPacker.new()
-	packer.pck_start("user://_patched/postload.pck")
+	_assert(packer.pck_start("user://_patched/postload.pck") == OK, "Failed to open postload.pck for writing")
 	
 	save_and_pack_json(packer, symbols, "res://JSON/Symbols - JSON.json")
 	save_and_pack_json(packer, items, "res://JSON/Items - JSON.json")
 	save_and_pack_json(packer, emails, "res://JSON/Emails - JSON.json")
 	
-	packer.flush(true)
+	_assert(packer.flush(true) == OK, "Failed to write to postload.pck")
 	
 	print("MODLOADER: Loading patched data")
 	_assert(ProjectSettings.load_resource_pack("user://_patched/postload.pck", true), "Failed to load patched data")
@@ -164,6 +164,30 @@ func remove_builtin_translation(key: String, locale: String = "en"):
 		return
 	compressed_translation_remove_message(key, tr)
 
+func add_hook(hook_name: String, handler: Object, handler_func_name: String):
+	connect(hook_name, handler, handler_func_name)
+
+#func begin_hook() -> bool:
+#	var default_cancelled_old := _hook_default_cancelled
+#	_hook_default_cancelled = false
+#	return default_cancelled_old
+
+#func end_hook(default_cancelled_old: bool) -> bool:
+#	var default_cancelled_new = _hook_default_cancelled
+#	_hook_default_cancelled = default_cancelled_old
+#	return default_cancelled_new
+
+#static func override_script(scene: PackedScene, script_path: String, new_script: GDScript):
+#	_assert(new_script is GDScript, "Invalid GDScript passed as override for " + script_path)
+#	
+#	var variants: Array = scene._bundled.variants
+#	var size := variants.size()
+#	for i in size:
+#		var item = scene._bundled.variants[i]
+#		if item is GDScript and item.resource_path.ends_with(script_path):
+#			print("FOUND SCRIPT; GOING IN! ", item.resource_path)
+#			scene._bundled.variants[i] = new_script
+
 static func extract_script(scene: PackedScene, node_name: String) -> GDScript:
 	var state: SceneState = scene.get_state()
 	
@@ -186,6 +210,12 @@ static func extract_script(scene: PackedScene, node_name: String) -> GDScript:
 	
 	return extracted_script
 
+func replace_script_and_pack_original(packer: PCKPacker, scene: PackedScene, node_name: String, new_script_path: String):
+	var script := extract_script(scene, node_name)
+	var old_script := script.duplicate()
+	script.source_code = Util.read_text(new_script_path)
+	save_and_pack_resource(packer, old_script, scene.resource_path.get_basename() + "_" + node_name + ".gd")
+
 func save_and_pack_resource(packer: PCKPacker, res: Resource, target_path: String):
 	var save_path := "user://_patched/" + target_path.trim_prefix("res://").replace("/", "_").replace("\\", "_")
 	_assert(ResourceSaver.save(save_path, res) == OK, "Failed to save resource to " + save_path)
@@ -201,10 +231,14 @@ func save_and_pack_json(packer: PCKPacker, json_data, target_path: String):
 	
 	_assert(packer.add_file(target_path, save_path) == OK, "Failed to pack resource to " + target_path)
 
-func copy_and_load(res_path: String) -> Resource:
-	var temp_path := "user://_loadtemp/" + res_path.trim_prefix("res://")
-	_assert(_dir.copy(res_path, temp_path) == OK, "Failed to copy " + res_path + " to " + temp_path)
-	return load(temp_path)
+func force_reload(resource_path: String):
+	var new := ResourceLoader.load(resource_path, "", true)
+	new.take_over_path(resource_path)
+
+#func copy_and_load(res_path: String) -> Resource:
+#	var temp_path := "user://_loadtemp/" + res_path.trim_prefix("res://")
+#	_assert(_dir.copy(res_path, temp_path) == OK, "Failed to copy " + res_path + " to " + temp_path)
+#	return load(temp_path)
 
 const uint32_limit := 0x100000000
 

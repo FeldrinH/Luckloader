@@ -10,15 +10,16 @@ var dir := Directory.new()
 func execute():
 	Util.ensure_dir_exists(datadump_dir)
 	
-	dump_folder("res://")
-	dump_folder("res://JSON")
-	dump_images()
+	dump_files("res://")
+	dump_files("res://JSON")
+	dump_images("res://icons")
+	dump_images("res://buttons")
 	dump_translations()
 
 func dump_file(file_path: String):
 	_assert(dir.copy(file_path, datadump_dir.plus_file(file_path.trim_prefix("res://"))) == OK, "Failed to dump file " + file_path)
 
-func dump_folder(folder_path: String):
+func dump_files(folder_path: String):
 	print("DATADUMP: Loading folder " + folder_path)
 	
 	Util.ensure_dir_exists(datadump_dir.plus_file(folder_path.trim_prefix("res://")))
@@ -35,27 +36,27 @@ func dump_folder(folder_path: String):
 	
 	print("DATADUMP: Dumped files in folder " + folder_path)
 
-func dump_images():
-	Util.ensure_dir_exists(datadump_dir.plus_file("icons"))
+func dump_images(folder_path: String):
+	Util.ensure_dir_exists(datadump_dir.plus_file(folder_path.trim_prefix("res://")))
 	
 	regex.compile("(.*)\\.import")
 	
-	print("DATADUMP: Loading icons")
+	print("DATADUMP: Loading images from " + folder_path)
 	
-	_assert(dir.open("res://icons") == OK, "Failed to open res://icons")
+	_assert(dir.open(folder_path) == OK, "Failed to open " + folder_path)
 	_assert(dir.list_dir_begin(true) == OK, "list_dir_begin failed")
 	var found_name := dir.get_next()
 	while found_name != "":
 		var matched := regex.search(found_name)
 		if matched != null:
-			var file_path: String = "icons".plus_file(matched.strings[1])
+			var file_path: String = folder_path.plus_file(matched.strings[1])
 			print("DATADUMP: Found image: " + file_path)
-			var res: Texture = load("res://" + file_path)
-			res.get_data().save_png(datadump_dir.plus_file(file_path))
+			var res: Texture = load(file_path)
+			res.get_data().save_png(datadump_dir.plus_file(file_path.trim_prefix("res://")))
 		
 		found_name = dir.get_next()
 		
-	print("DATADUMP: Dumped all icons")
+	print("DATADUMP: Dumped all images from " + folder_path)
 
 func dump_translations():
 	print("DATADUMP: Loading translations")
