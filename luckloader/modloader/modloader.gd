@@ -148,7 +148,7 @@ func load_mods():
 			found_name = _dir.get_next()
 	
 	print("MODLOADER: Running load method on mods")
-	for mod in mods:
+	for mod in mods.values():
 		if mod.has_method("load"):
 			mod.load(self, tree)
 	
@@ -156,7 +156,7 @@ func load_mods():
 
 func postload_mods():
 	print("MODLOADER: Running postload method on mods")
-	for mod in mods:
+	for mod in mods.values():
 		if mod.has_method("postload"):
 			mod.postload(self, tree)
 
