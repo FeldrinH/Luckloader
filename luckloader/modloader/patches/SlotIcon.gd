@@ -6,5 +6,5 @@ func add_conditional_effects():
 	.add_conditional_effects()
 	
 	modloader.emit_signal("add_conditional_effects", self, get_adjacent_icons())
-
-	print(self, " ", type, " hook add_conditional_effects")
+	
+	#print(self, " ", type, " hook add_conditional_effects")

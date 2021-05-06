@@ -65,8 +65,8 @@ func execute_after_start():
 	postload_mods()
 	
 	var overlay = load("res://modloader/MainMenuOverlay.tscn").instance()
-	var node := tree.root.get_node("Main/Title/Background")
-	node.add_child(overlay)
+	tree.root.get_node(overlay.expected_parent_node_path).add_child(overlay)
+	overlay.set_version("Luckloader " + modloader_version)
 	overlay.set_counts(package_count, mods.size())
 	
 	print("MODLOADER: Initialization complete")
