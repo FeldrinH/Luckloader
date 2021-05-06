@@ -1,11 +1,9 @@
 extends Reference
 
-signal add_conditional_effects(icon, adj_icons)
-
 var tree: SceneTree
 const Util = preload("res://modloader/util.gd")
 
-const modloader_version := "v0.2.0"
+const modloader_version := "v0.3.0"
 const expected_version := "Content Patch #6 -- Hotfix #2"
 var game_version: String = "<game version not determined yet>"
 
@@ -19,10 +17,16 @@ var package_count: int = 0
 const mods := {}
 const translations := {}
 const builtin_translations := {}
+const hooks := {
+	"symbol_add_effects": [],
+	"symbol_change_type": [], # maybe?
+	"item_add_effects": [],
+	"item_check_symbols": [],
+	"item_add": [],
+	"item_destroy": []
+}
 
 var _dir := Directory.new()
-
-var _hook_default_cancelled: bool = false
 
 func _init(tree: SceneTree):
 	self.tree = tree
@@ -78,11 +82,14 @@ func patch_preload():
 	_assert(packer.pck_start("user://_patched/preload.pck") == OK, "Opening preload.pck for writing failed")
 	
 	var scene: PackedScene
-	var script: GDScript
 	
 	scene = load("res://Slot Icon.tscn")
 	replace_script_and_pack_original(packer, scene, "Slot Icon", "res://modloader/patches/SlotIcon.gd")
 	save_and_pack_resource(packer, scene, "res://Slot Icon.tscn")
+	
+	scene = load("res://Item.tscn")
+	replace_script_and_pack_original(packer, scene, "Item", "res://modloader/patches/Item.gd")
+	save_and_pack_resource(packer, scene, "res://Item.tscn")
 	
 	_assert(packer.flush(true) == OK, "Failed to write to preload.pck")
 	
@@ -178,20 +185,23 @@ func setup_json():
 
 func add_symbol(name: String, data: Dictionary):
 	if !(data.has("value") and data.has("values") and data.has("rarity") and data.has("groups")):
-		_halt("Attempt to add invalid symbol " + str(data))
+		print("MODLOADER: WARNING: Attempt to add invalid symbol " + str(data))
+		return
 	
 	symbols[name] = data
 
 func add_item(name: String, data: Dictionary):
 	if !(data.has("values") and data.has("rarity") and data.has("groups")):
-		_halt("Attempt to add invalid item " + str(data))
+		print("MODLOADER: WARNING: Attempt to add invalid item " + str(data))
+		return
 	
 	items[name] = data
 
 func add_translation(key: String, value: String, locale: String = "en"):
 	if !translations.has(locale):
-		print("MODLOADER: Warning: Attempt to add translation to unknown locale ", locale)
+		print("MODLOADER: WARNING: Attempt to add translation to unknown locale ", locale)
 		return
+	
 	translations[locale].add_message(key, value)
 	remove_builtin_translation(key, locale)
 
@@ -199,23 +209,37 @@ func remove_builtin_translation(key: String, locale: String = "en"):
 	if !builtin_translations.has(locale):
 		print("MODLOADER: Warning: Attempt to remove builtin translation from unknown locale ", locale)
 		return
+	
 	var tr: PHashTranslation = builtin_translations[locale]
 	if tr.get_message(key) == "":
 		return
 	compressed_translation_remove_message(key, tr)
 
 func add_hook(hook_name: String, handler: Object, handler_func_name: String):
+	if !hooks.has(hook_name):
+		print("MODLOADER: WARNING: Attempt to add handler for unknown hook ", hook_name)
+		return
+	
+	hooks[hook_name].push_front(funcref(handler, handler_func_name))
+
+func add_hook_last(hook_name: String, handler: Object, handler_func_name: String):
 	connect(hook_name, handler, handler_func_name)
 
-#func begin_hook() -> bool:
-#	var default_cancelled_old := _hook_default_cancelled
-#	_hook_default_cancelled = false
-#	return default_cancelled_old
+func run_hook_bool_1(hooks: Array, arg1):
+	var value
+	for hook in hooks:
+		value = hook.call_func(arg1)
+		if value:
+			return value
+	return false
 
-#func end_hook(default_cancelled_old: bool) -> bool:
-#	var default_cancelled_new = _hook_default_cancelled
-#	_hook_default_cancelled = default_cancelled_old
-#	return default_cancelled_new
+func run_hook_bool_2(hooks: Array, arg1, arg2):
+	var value
+	for hook in hooks:
+		value = hook.call_func(arg1, arg2)
+		if value:
+			return value
+	return false
 
 #static func override_script(scene: PackedScene, script_path: String, new_script: GDScript):
 #	_assert(new_script is GDScript, "Invalid GDScript passed as override for " + script_path)
