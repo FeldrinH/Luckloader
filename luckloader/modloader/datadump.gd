@@ -30,8 +30,9 @@ func dump_files(folder_path: String):
 	var found_name := dir.get_next()
 	while found_name != "":
 		if !dir.current_is_dir():
-			print("DATADUMP: Found file: " + found_name)
-			dump_file(folder_path.plus_file(found_name))
+			if found_name != "project.binary":
+				print("DATADUMP: Found file: " + found_name)
+				dump_file(folder_path.plus_file(found_name))
 		
 		found_name = dir.get_next()
 	

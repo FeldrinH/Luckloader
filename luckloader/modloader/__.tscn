@@ -14,9 +14,9 @@ func _enter_tree():
 	print(\"Loading translations\")
 	#var tr_old: Translation = load(\"res://ttest.en.translation\")
 	#TranslationServer.remove_translation(tr_old)
-	print(ifad)
-	print(ifad)
-	create_tr()
+	print(null and \"red\")
+	print(\"red\" or \"blue\")
+	#create_tr()
 	
 	
 func create_tr():

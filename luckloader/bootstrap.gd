@@ -20,9 +20,8 @@ func _initialize():
 		
 		print("BOOTSTRAP: Starting game")
 		change_scene(ProjectSettings.get_setting("application/run/main_scene"))
-		yield(self, "node_added")
 		
-		modloader.execute_after_start()
+		connect("node_added", self, "modloader_execute_after_start", [], CONNECT_DEFERRED | CONNECT_ONESHOT)
 	elif mode == "-datadump":
 		print("BOOTSTRAP: Running datadump")
 		
@@ -30,10 +29,12 @@ func _initialize():
 		
 		datadump.execute()
 		
-		yield(create_timer(4), "timeout")
-		quit()
+		create_timer(4).connect("timeout", self, "quit", [], CONNECT_DEFERRED | CONNECT_ONESHOT)
 	else:
 		_halt("Unknown bootstrap mode: '" + mode + "'")
+
+func modloader_execute_after_start(_arg):
+	modloader.execute_after_start()
 
 func get_mode():
 	for argument in OS.get_cmdline_args():

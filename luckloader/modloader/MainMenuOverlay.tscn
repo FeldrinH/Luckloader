@@ -5,8 +5,8 @@ script/source = "extends CanvasLayer
 
 var warning_count := 0
 
-func set_mod_count(mod_count: int):
-	$Root/Mods.text = str(mod_count) + \" mods loaded\"
+func set_counts(package_count:int, mod_count: int):
+	$Root/Mods.text = \"Loaded: \" + str(package_count) + \" packages, \" + str(mod_count) + \" mods\"
 
 func increment_warning_count(increment: int = 1):
 	warning_count += increment
@@ -14,7 +14,7 @@ func increment_warning_count(increment: int = 1):
 "
 
 [node name="LuckloaderMainMenuOverlay" type="CanvasLayer"]
-layer = 16
+layer = 10
 script = SubResource( 1 )
 
 [node name="Root" type="Control" parent="."]
@@ -41,11 +41,11 @@ __meta__ = {
 [node name="Mods" type="Label" parent="Root"]
 anchor_top = 1.0
 anchor_bottom = 1.0
-margin_left = 5.19131
-margin_top = -23.3816
-margin_right = 201.191
-margin_bottom = -5.38159
-text = "X mods loaded"
+margin_left = 4.34945
+margin_top = -39.0961
+margin_right = 200.349
+margin_bottom = -21.0961
+text = "Loaded: X packages, Y mods"
 valign = 2
 __meta__ = {
 "_edit_use_anchors_": false

@@ -1,6 +1,9 @@
 extends Reference
 
 
+static func get_or_default(obj: Object, property: String, default):
+	return obj.get(property) if (property in obj) else default
+
 static func ensure_dir_exists(dir_path: String):
 	var dir := Directory.new()
 	if !dir.dir_exists(dir_path):

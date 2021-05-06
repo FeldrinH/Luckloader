@@ -15,7 +15,8 @@ var symbols: Dictionary
 var items: Dictionary
 var emails: Dictionary
 
-const mods := []
+var package_count: int = 0
+const mods := {}
 const translations := {}
 const builtin_translations := {}
 
@@ -54,18 +55,20 @@ func execute_before_start():
 	
 	setup_json()
 	
-	#loads_mods()
+	load_mods()
 	
 	patch_postload()
 
 func execute_after_start():
 	print("MODLOADER: Adding modloader UI overlay")
 	
-	var overlay = load("res://modloader/MainMenuOverlay.tscn").instance()
-	tree.current_scene.add_child(overlay)
-	overlay.set_mod_count(mods.size())
+	postload_mods()
 	
-	#postload_mods()
+	var overlay = load("res://modloader/MainMenuOverlay.tscn").instance()
+	var node := tree.root.get_node("Main/Title")
+	print(node, " ",  node.get_path())
+	node.add_child(overlay)
+	overlay.set_counts(package_count, mods.size())
 	
 	print("MODLOADER: Initialization complete")
 
@@ -89,8 +92,6 @@ func patch_preload():
 	_assert(ProjectSettings.load_resource_pack("user://_patched/preload.pck", true), "Failed to load patched code")
 	force_reload("res://Slot Icon.tscn")
 	
-	print(extract_script(load("res://Slot Icon.tscn"), "Slot Icon").resource_path)
-	
 	print("MODLOADER: Patching game code complete")
 
 func patch_postload():
@@ -112,13 +113,53 @@ func patch_postload():
 
 func load_mods():
 	print("MODLOADER: Loading mods")
-
-	_assert(ProjectSettings.load_resource_pack("test.zip", true), "Failed to load test.zip")
-
+	
+	var packages_dir := exe_dir.plus_file("mods")
+	Util.ensure_dir_exists(packages_dir)
+	_assert(_dir.open(packages_dir) == OK, "Failed to open " + packages_dir)
+	_assert(_dir.list_dir_begin(true) == OK, "list_dir_begin failed")
+	var found_name := _dir.get_next()
+	while found_name != "":
+		if !_dir.current_is_dir():
+			var ext := found_name.get_extension().to_lower()
+			if ext == "zip" or ext == "pck":
+				var found_path := packages_dir.plus_file(found_name)
+				_assert(ProjectSettings.load_resource_pack(found_path, true), "Failed to load " + found_path)
+				package_count += 1
+				print("MODLOADER: Loaded package: " + found_name)
+		
+		found_name = _dir.get_next()
+	
+	var mods_dir := "res://mods"
+	if _dir.open(mods_dir) == OK:
+		_assert(_dir.list_dir_begin(true) == OK, "list_dir_begin failed")
+		found_name = _dir.get_next()
+		while found_name != "":
+			if _dir.current_is_dir():
+				var mod_script_path := mods_dir.plus_file(found_name).plus_file("mod.gd")
+				var mod_script: GDScript = load(mod_script_path)
+				if !(mod_script != null and mod_script is GDScript):
+					print("MODLOADER: WARNING: Mod directory " + found_name + " without mod.gd file")
+					continue
+				
+				var mod: Reference = mod_script.new()
+				mods[found_name] = mod
+				print("MODLOADER: Found mod: " + Util.get_or_default(mod, "display_name", found_name) + " " + Util.get_or_default(mod, "version", ""))
+			
+			found_name = _dir.get_next()
+	
+	print("MODLOADER: Running load method on mods")
+	for mod in mods:
+		if mod.has_method("load"):
+			mod.load(self, tree)
+	
 	print("MODLOADER: Loading mods complete")
 
 func postload_mods():
-	pass
+	print("MODLOADER: Running postload method on mods")
+	for mod in mods:
+		if mod.has_method("postload"):
+			mod.postload(self, tree)
 
 func setup_translations():
 	for locale in TranslationServer.get_loaded_locales():

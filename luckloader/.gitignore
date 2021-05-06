@@ -1,2 +1,5 @@
-/.import/
-/*.zip
+/*
+!/project.godot
+!/modloader/
+!/bootstrap.gd
+!/export_presets.cfg
