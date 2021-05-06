@@ -65,8 +65,7 @@ func execute_after_start():
 	postload_mods()
 	
 	var overlay = load("res://modloader/MainMenuOverlay.tscn").instance()
-	var node := tree.root.get_node("Main/Title")
-	print(node, " ",  node.get_path())
+	var node := tree.root.get_node("Main/Title/Background")
 	node.add_child(overlay)
 	overlay.set_counts(package_count, mods.size())
 	
