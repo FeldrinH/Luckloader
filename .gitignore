@@ -4,5 +4,6 @@
 !/*.bat
 !/*.sh
 !/luckloader/
+!/examplemod/
 !/*.gd
 !/project.godot

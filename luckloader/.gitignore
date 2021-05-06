@@ -1,5 +1,3 @@
-/*
-!/project.godot
-!/modloader/
-!/bootstrap.gd
-!/export_presets.cfg
+/.import/
+/*.otf
+*.zip
