@@ -12,6 +12,7 @@ func execute():
 	
 	dump_files("res://")
 	dump_files("res://JSON")
+	dump_images("res://")
 	dump_images("res://icons")
 	dump_images("res://buttons")
 	dump_translations()
@@ -52,9 +53,10 @@ func dump_images(folder_path: String):
 		var matched := regex.search(found_name)
 		if matched != null:
 			var file_path: String = folder_path.plus_file(matched.strings[1])
-			print("DATADUMP: Found image: " + file_path)
 			var res: Texture = load(file_path)
-			res.get_data().save_png(datadump_dir.plus_file(file_path.trim_prefix("res://")))
+			if res is Texture:
+				print("DATADUMP: Found image: " + file_path)
+				res.get_data().save_png(datadump_dir.plus_file(file_path.trim_prefix("res://")))
 		
 		found_name = dir.get_next()
 		
