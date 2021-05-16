@@ -17,14 +17,14 @@ var package_count: int = 0
 const mods := {}
 const translations := {}
 const builtin_translations := {}
-const hooks := {
-	"symbol_add_effects": [],
-	"symbol_change_type": [], # maybe?
-	"item_add_effects": [],
-	"item_check_symbols": [],
-	"item_add": [],
-	"item_destroy": []
-}
+#const hooks := {
+#	"symbol_add_effects": [],
+#	"symbol_change_type": [], # maybe?
+#	"item_add_effects": [],
+#	"item_check_symbols": [],
+#	"item_add": [],
+#	"item_destroy": []
+#}
 
 var _dir := Directory.new()
 
@@ -53,7 +53,7 @@ func execute_before_start():
 	if expected_version != game_version:
 		_halt("Version mismatch: This modloader is for version '" + expected_version + "' but the game is running version '" + game_version + "'")
 	
-	patch_preload()
+	#patch_preload()
 	
 	setup_translations()
 	
@@ -215,31 +215,35 @@ func remove_builtin_translation(key: String, locale: String = "en"):
 		return
 	compressed_translation_remove_message(key, tr)
 
-func add_hook(hook_name: String, handler: Object, handler_func_name: String):
-	if !hooks.has(hook_name):
-		print("MODLOADER: WARNING: Attempt to add handler for unknown hook ", hook_name)
-		return
-	
-	hooks[hook_name].push_front(funcref(handler, handler_func_name))
+#func add_hook_first(hook_name: String, handler: Object, handler_func_name: String):
+#	if !hooks.has(hook_name):
+#		print("MODLOADER: WARNING: Attempt to add handler for unknown hook ", hook_name)
+#		return
+#
+#	hooks[hook_name].push_front(funcref(handler, handler_func_name))
 
-func add_hook_last(hook_name: String, handler: Object, handler_func_name: String):
-	connect(hook_name, handler, handler_func_name)
+#func add_hook_last(hook_name: String, handler: Object, handler_func_name: String):
+#	if !hooks.has(hook_name):
+#		print("MODLOADER: WARNING: Attempt to add handler for unknown hook ", hook_name)
+#		return
+#
+#	hooks[hook_name].push_back(funcref(handler, handler_func_name))
 
-func run_hook_bool_1(hooks: Array, arg1):
-	var value
-	for hook in hooks:
-		value = hook.call_func(arg1)
-		if value:
-			return value
-	return false
+#func run_hook_bool_1(hooks: Array, arg1):
+#	var value
+#	for hook in hooks:
+#		value = hook.call_func(arg1)
+#		if value:
+#			return value
+#	return false
 
-func run_hook_bool_2(hooks: Array, arg1, arg2):
-	var value
-	for hook in hooks:
-		value = hook.call_func(arg1, arg2)
-		if value:
-			return value
-	return false
+#func run_hook_bool_2(hooks: Array, arg1, arg2):
+#	var value
+#	for hook in hooks:
+#		value = hook.call_func(arg1, arg2)
+#		if value:
+#			return value
+#	return false
 
 #static func override_script(scene: PackedScene, script_path: String, new_script: GDScript):
 #	_assert(new_script is GDScript, "Invalid GDScript passed as override for " + script_path)

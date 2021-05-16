@@ -19,7 +19,8 @@ func execute():
 	ProjectSettings.save_custom(datadump_dir.plus_file("project.godot"))
 
 func dump_file(file_path: String):
-	_assert(dir.copy(file_path, datadump_dir.plus_file(file_path.trim_prefix("res://"))) == OK, "Failed to dump file " + file_path)
+	var target_path := datadump_dir.plus_file(file_path.trim_prefix("res://"))
+	_assert(dir.copy(file_path, target_path) == OK, "Failed to dump file " + file_path + " to " + target_path)
 
 func dump_files(folder_path: String):
 	print("DATADUMP: Loading folder " + folder_path)
@@ -57,6 +58,7 @@ func dump_images(folder_path: String):
 			if res is Texture:
 				print("DATADUMP: Found image: " + file_path)
 				res.get_data().save_png(datadump_dir.plus_file(file_path.trim_prefix("res://")))
+				dump_file(file_path + ".import")
 		
 		found_name = dir.get_next()
 		
