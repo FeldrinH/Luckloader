@@ -16,7 +16,6 @@ _global_script_class_icons={
 [application]
 
 config/name="Luckloader"
-run/main_scene="res://modloader/__.tscn"
 
 [global]
 

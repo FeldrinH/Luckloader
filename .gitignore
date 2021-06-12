@@ -7,3 +7,5 @@
 !/examplemod/
 !/*.gd
 !/project.godot
+
+/f*.bat

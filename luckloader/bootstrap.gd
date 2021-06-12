@@ -22,14 +22,16 @@ func _initialize():
 		change_scene(ProjectSettings.get_setting("application/run/main_scene"))
 		
 		connect("node_added", self, "modloader_execute_after_start", [], CONNECT_DEFERRED | CONNECT_ONESHOT)
-	elif mode == "-datadump":
-		print("BOOTSTRAP: Running datadump")
+	elif mode == "-assetdump" or mode == "-fulldump":
+		print("BOOTSTRAP: Running assetdump")
 		
-		var datadump = load("res://modloader/datadump.gd").new()
+		var assetdump = load("res://modloader/fulldump.gd" if mode == "-fulldump" else "res://modloader/fulldump.gd").new()
 		
-		datadump.execute()
+		assetdump.execute()
 		
 		create_timer(4).connect("timeout", self, "quit", [], CONNECT_DEFERRED | CONNECT_ONESHOT)
+	elif mode == "-createmod":
+		
 	else:
 		_halt("Unknown bootstrap mode: '" + mode + "'")
 
@@ -38,7 +40,7 @@ func modloader_execute_after_start(_arg):
 
 func get_mode():
 	for argument in OS.get_cmdline_args():
-		if argument == "-datadump":
+		if argument == "-datadump" or argument == "-fulldump" or argument == "-createmod":
 			return argument
 	return null
 

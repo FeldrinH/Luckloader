@@ -1,1 +1,0 @@
-start "" "Luck Be A Landlord.exe" --script luckloader/bootstrap.gd -datadump

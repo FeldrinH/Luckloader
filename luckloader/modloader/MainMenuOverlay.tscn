@@ -5,20 +5,20 @@
 [sub_resource type="GDScript" id=1]
 script/source = "extends Control
 
-const expected_parent_node_path := \"/root/Main/Title/Background\"
-
 var warning_count := 0
 
+onready var visibility_parent := $\"/root/Main/Title/Background/Title Text\"
+
 func _ready():
-	$\"/root/Main/Title/Background/Title Text\".connect(\"visibility_changed\", self, \"_on_menu_visibility_changed\")
+	visibility_parent.connect(\"visibility_changed\", self, \"_on_menu_visibility_changed\")
 
 func _on_menu_visibility_changed():
-	visible = $\"/root/Main/Title/Background/Title Text\".visible
+	visible = visibility_parent.visible
 
 func set_version(version: String):
-	$Root/Version.text = version	
+	$Root/Version.text = version
 
-func set_counts(package_count:int, mod_count: int):
+func set_counts(package_count: int, mod_count: int):
 	$Root/Mods.text = \"Loaded:\\n\" + str(package_count) + \" packages\\n\" + str(mod_count) + \" mods\"
 
 func increment_warning_count(increment: int = 1):

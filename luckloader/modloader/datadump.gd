@@ -2,21 +2,10 @@ extends Reference
 
 const Util = preload("res://modloader/util.gd")
 
-var datadump_dir := OS.get_executable_path().get_base_dir().plus_file("datadump")
+var datadump_dir: String
 
 var regex := RegEx.new()
 var dir := Directory.new()
-
-func execute():
-	Util.ensure_dir_exists(datadump_dir)
-	
-	dump_files("res://")
-	dump_files("res://JSON")
-	dump_images("res://")
-	dump_images("res://icons")
-	dump_images("res://buttons")
-	dump_translations()
-	ProjectSettings.save_custom(datadump_dir.plus_file("project.godot"))
 
 func dump_file(file_path: String):
 	var target_path := datadump_dir.plus_file(file_path.trim_prefix("res://"))
