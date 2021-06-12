@@ -36,7 +36,7 @@ func execute_before_start():
 	
 	_assert(ProjectSettings.load_resource_pack(exe_dir.plus_file("luckloader/modloader.zip"), true), "Failed to load modloader internals")
 	
-	Util.ensure_dir_exists("user://_loadtemp")
+	#Util.ensure_dir_exists("user://_loadtemp")
 	Util.ensure_dir_exists("user://_patched")
 	
 	# Extract game version using regex. Dirty hack to avoid having to run game code before patching.
@@ -53,15 +53,15 @@ func execute_before_start():
 	if expected_version != game_version:
 		_halt("Version mismatch: This modloader is for version '" + expected_version + "' but the game is running version '" + game_version + "'")
 	
-	#patch_preload()
+	#patch_preload() # Patch modloader hooks (currently disabled)
 	
-	setup_translations()
+	setup_translations() # Load translation files into modloader for modification
 	
-	setup_json()
+	setup_json() # Load JSON data into modloader for modification
 	
-	load_mods()
+	load_mods() # Load external mods
 	
-	patch_postload()
+	patch_postload() # Patch JSON data
 
 func execute_after_start():
 	print("MODLOADER: Adding modloader UI overlay")

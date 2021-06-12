@@ -25,13 +25,12 @@ func _initialize():
 	elif mode == "-assetdump" or mode == "-fulldump":
 		print("BOOTSTRAP: Running assetdump")
 		
-		var assetdump = load("res://modloader/fulldump.gd" if mode == "-fulldump" else "res://modloader/fulldump.gd").new()
-		
+		var assetdump = load("res://modloader/fulldump.gd" if mode == "-fulldump" else "res://modloader/assetdump.gd").new()
 		assetdump.execute()
 		
 		create_timer(4).connect("timeout", self, "quit", [], CONNECT_DEFERRED | CONNECT_ONESHOT)
 	elif mode == "-createmod":
-		
+		pass
 	else:
 		_halt("Unknown bootstrap mode: '" + mode + "'")
 
@@ -40,7 +39,7 @@ func modloader_execute_after_start(_arg):
 
 func get_mode():
 	for argument in OS.get_cmdline_args():
-		if argument == "-datadump" or argument == "-fulldump" or argument == "-createmod":
+		if argument == "-assetdump" or argument == "-fulldump" or argument == "-createmod":
 			return argument
 	return null
 

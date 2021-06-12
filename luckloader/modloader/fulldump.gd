@@ -1,9 +1,8 @@
 extends "datadump.gd"
 
-func _init():
-	datadump_dir = OS.get_executable_path().get_base_dir().plus_file("fulldump")
-
 func execute():
+	datadump_dir = OS.get_executable_path().get_base_dir().plus_file("fulldump")
+	
 	Util.ensure_dir_exists(datadump_dir)
 	
 	dump_files("res://")
