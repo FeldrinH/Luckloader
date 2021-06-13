@@ -15,13 +15,4 @@ _global_script_class_icons={
 
 [application]
 
-config/name="Luckloader"
-run/main_scene="res://modloader/ui/CreateModUI.tscn"
-
-[global]
-
-config/name=false
-
-[locale]
-
-translations=PoolStringArray( "res://ttest.en.translation" )
+config/name="<modnamehere>"

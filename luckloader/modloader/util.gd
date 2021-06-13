@@ -24,11 +24,22 @@ static func read_json(file_path: String):
 
 static func _assert(condition: bool, message: String):
 	if !condition:
-		_halt(message)
+		_halt(message, "MODLOADER UTIL")
 
-static func _halt(message: String):
+static func _halt(message: String, source: String):
+	var error_text := source + " RUNTIME ERROR: " + message
 	# Output error message
-	push_error("MODLOADER UTIL RUNTIME ERROR: " + message)
+	push_error(error_text)
 	# Cause an intentional null pointer exception, to halt script execution
-	var t1 = null
-	t1.fail_runtime_check()
+	var _t = null
+	_t.fail_runtime_check()
+
+static func _halt_alert(message: String, source: String):
+	var error_text := source + " RUNTIME ERROR: " + message
+	# Output error message
+	push_error(error_text)
+	# Show alert with error message
+	OS.alert(error_text, "Error")
+	# Cause an intentional null pointer exception, to halt script execution
+	var _t = null
+	_t.fail_runtime_check()

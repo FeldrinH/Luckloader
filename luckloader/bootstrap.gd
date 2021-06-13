@@ -30,7 +30,12 @@ func _initialize():
 		
 		create_timer(4).connect("timeout", self, "quit", [], CONNECT_DEFERRED | CONNECT_ONESHOT)
 	elif mode == "-createmod":
-		pass
+		print("BOOTSTRAP: Running new mod creation UI")
+		
+		OS.window_borderless = false
+		OS.window_resizable = true
+		OS.window_size = Vector2(1024, 720)
+		change_scene("res://modloader/ui/CreateModUI.tscn")
 	else:
 		_halt("Unknown bootstrap mode: '" + mode + "'")
 

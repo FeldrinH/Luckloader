@@ -1,0 +1,113 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://modloader/ui/ui_font.tres" type="DynamicFont" id=1]
+[ext_resource path="res://modloader/ui/CreateModUI.gd" type="Script" id=2]
+
+[node name="Root" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_lock_": true,
+"_edit_use_anchors_": false
+}
+
+[node name="ModIDInfo" type="Label" parent="."]
+anchor_top = 0.0453084
+anchor_right = 1.0
+anchor_bottom = 0.225309
+custom_fonts/font = ExtResource( 1 )
+text = "Mod identifier
+(this must be unique,
+only a-z, 0-9, _ and - are allowed)"
+align = 1
+valign = 2
+__meta__ = {
+"_edit_use_anchors_": true
+}
+
+[node name="ModID" type="LineEdit" parent="."]
+anchor_left = 0.25
+anchor_top = 0.238014
+anchor_right = 0.75
+anchor_bottom = 0.238014
+margin_right = -6.10352e-05
+margin_bottom = 48.0
+custom_fonts/font = ExtResource( 1 )
+max_length = 40
+placeholder_text = "mod_identifier"
+caret_blink = true
+__meta__ = {
+"_edit_use_anchors_": true
+}
+
+[node name="ModNameInfo" type="Label" parent="."]
+anchor_top = 0.367487
+anchor_right = 1.0
+anchor_bottom = 0.547487
+custom_fonts/font = ExtResource( 1 )
+text = "Mod display name
+(this does not need to be unique,
+all characters are allowed)"
+align = 1
+valign = 2
+__meta__ = {
+"_edit_use_anchors_": true
+}
+
+[node name="ModName" type="LineEdit" parent="."]
+anchor_left = 0.25
+anchor_top = 0.559889
+anchor_right = 0.75
+anchor_bottom = 0.56
+margin_right = -6.10352e-05
+margin_bottom = 47.9334
+custom_fonts/font = ExtResource( 1 )
+max_length = 150
+placeholder_text = "Mod display name"
+caret_blink = true
+__meta__ = {
+"_edit_use_anchors_": true
+}
+
+[node name="OutputInfo" type="Label" parent="."]
+anchor_top = 0.683356
+anchor_right = 1.0
+anchor_bottom = 0.758356
+custom_fonts/font = ExtResource( 1 )
+text = "Mod template will be saved to:"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": true
+}
+
+[node name="OutputPath" type="Label" parent="."]
+anchor_left = 0.01
+anchor_top = 0.743356
+anchor_right = 0.99
+anchor_bottom = 0.905023
+custom_fonts/font = ExtResource( 1 )
+text = "C:/path/to/mod/output/folder"
+align = 1
+autowrap = true
+__meta__ = {
+"_edit_use_anchors_": true
+}
+
+[node name="CreateButton" type="Button" parent="."]
+anchor_left = 0.170904
+anchor_top = 0.891955
+anchor_right = 0.84229
+anchor_bottom = 0.96669
+margin_left = 0.295532
+margin_top = -0.173279
+margin_right = -0.203003
+margin_bottom = -0.0142212
+custom_fonts/font = ExtResource( 1 )
+text = "Save template for <Mod display name>"
+__meta__ = {
+"_edit_use_anchors_": true
+}
+[connection signal="text_changed" from="ModID" to="." method="_on_input_changed"]
+[connection signal="text_changed" from="ModName" to="." method="_on_input_changed"]
+[connection signal="pressed" from="CreateButton" to="." method="_on_create_button_pressed"]
